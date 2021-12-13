@@ -24,12 +24,12 @@ class Page {
     this._words.push(id);
   }
 
-  toJSON(): PageJson {
-    return {
-      url: this._url,
-      size: this._words.length,
-    };
-  }
+  //   toJSON(): PageJson {
+  //     return {
+  //       url: this._url,
+  //       size: this._words.length,
+  //     };
+  //   }
 }
 
 export default Page;
