@@ -1,32 +1,20 @@
+import Score from "models/Score";
 import type { NextApiRequest, NextApiResponse } from "next";
-import getPageDB from "utils/pageDBCache";
+import { getDBData } from "utils/pageDBCache";
+import QueryHandler from "utils/queryHandler";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<string[] | { error: unknown }>
+  res: NextApiResponse<Score[] | { error: unknown }>
 ): Promise<void> {
   try {
-    const pageDB = await getPageDB();
     const {
       query: { q },
     } = req;
 
-    const results: string[] = [];
-    const searchWords = Array.isArray(q) ? q : q.split(" ");
+    const qh = new QueryHandler(await getDBData());
 
-    for (const word of searchWords) {
-      const id = pageDB.getIdForWord(word);
-      // console.log(id);
-      for (const page of pageDB.pages) {
-        if (page.words.includes(id)) {
-          results.push(page.url);
-        }
-      }
-    }
-
-    console.log(pageDB);
-
-    res.status(200).json(results);
+    res.status(200).json(await qh.query(q));
   } catch (error) {
     res.status(500).json({ error: "failed to load data.." });
   }
