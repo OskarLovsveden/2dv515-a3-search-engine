@@ -6,6 +6,11 @@ import Page from "models/Page";
 import PageDB from "models/PageDB";
 import { createInterface } from "readline";
 
+/**
+ * Creates and returns an instance of PageDB.
+ *
+ * @returns {Promise<PageDB>} the page DB containing all pages of our dataset.
+ */
 const getDBData = async (): Promise<PageDB> => {
   const pageDB = new PageDB();
   const startPath = "data/wikipedia/Words";
@@ -44,6 +49,10 @@ const getDBData = async (): Promise<PageDB> => {
 
 const PAGEDB_CACHE_PATH = "data/pageDB";
 
+/**
+ * Gets the page DB from the chached file, or creates it and caches it.
+ * @returns {Promise<PageDB>} a PageDB instance.
+ */
 const getPageDB = async (): Promise<PageDB> => {
   console.time("Total time to get PageDB");
   let cachedData;
@@ -72,4 +81,4 @@ const getPageDB = async (): Promise<PageDB> => {
   return cachedData;
 };
 
-export default getPageDB;
+export { getPageDB, getDBData };
