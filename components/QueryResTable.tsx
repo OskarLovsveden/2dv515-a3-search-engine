@@ -3,7 +3,7 @@ import { Score } from "types/Score";
 import { round } from "utils/helpers";
 
 type QueryResTableProps = {
-  queryRes: Score[];
+  queryRes: Array<Score>;
   startAt: number;
   endAt: number;
 };

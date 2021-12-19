@@ -2,7 +2,7 @@ import { FormEvent } from "react";
 import { Score } from "types/Score";
 
 type SearchbarProps = {
-  resultHandler: (data: Score[], time: number) => void;
+  resultHandler: (data: Array<Score>, time: number) => void;
 };
 
 const Searchbar = ({ resultHandler }: SearchbarProps) => {

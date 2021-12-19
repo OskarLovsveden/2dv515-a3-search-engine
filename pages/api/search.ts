@@ -5,7 +5,7 @@ import QueryHandler from "utils/queryHandler";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Score[] | { error: unknown }>
+  res: NextApiResponse<Array<Score> | { error: unknown }>
 ): Promise<void> {
   try {
     const {

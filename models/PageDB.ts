@@ -1,17 +1,12 @@
 import Page from "./Page";
 
-type PageDBJson = {
-  wordToId: Map<string, number>;
-  pages: Page[];
-};
-
 class PageDB {
   private _wordToId: Map<string, number>;
-  private _pages: Page[];
+  private _pages: Array<Page>;
 
   constructor() {
     this._wordToId = new Map<string, number>();
-    this._pages = [];
+    this._pages = new Array<Page>();
   }
 
   get size(): number {
@@ -35,13 +30,6 @@ class PageDB {
   pageAt(index: number) {
     return this._pages[index];
   }
-
-  //   toJSON(): PageDBJson {
-  //     return {
-  //       wordToId: this._wordToId,
-  //       pages: this._pages,
-  //     };
-  //   }
 }
 
 export default PageDB;
