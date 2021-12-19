@@ -1,6 +1,6 @@
 import styles from "styles/QueryResTable.module.css";
 import { Score } from "types/Score";
-import { round } from "utils/helpers";
+import { truncate } from "utils/helpers";
 
 type QueryResTableProps = {
   queryRes: Array<Score>;
@@ -29,9 +29,9 @@ const QueryResTable = ({ queryRes, startAt, endAt }: QueryResTableProps) => {
               {q.url}
             </a>
           </td>
-          <td>{round(q.score)}</td>
-          <td>{round(q.content)}</td>
-          <td>{round(q.location)}</td>
+          <td>{truncate(q.score, 2)}</td>
+          <td>{truncate(q.content, 2)}</td>
+          <td>{truncate(q.location, 2)}</td>
           <td>0</td>
         </tr>
       ))}
