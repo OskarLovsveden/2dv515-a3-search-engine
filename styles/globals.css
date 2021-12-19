@@ -80,3 +80,8 @@ select {
     scroll-behavior: auto !important;
   }
 }
+
+/* Helpers */
+.mx-1 {
+  margin: 0 0.25rem 0 0.25rem;
+}
