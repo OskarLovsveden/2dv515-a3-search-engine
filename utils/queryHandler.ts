@@ -1,14 +1,10 @@
 import Page from "models/Page";
 import PageDB from "models/PageDB";
-import Score from "models/Score";
+import { Score } from "types/Score";
 
 class QueryHandler {
   private pageDB: PageDB;
 
-  /**
-   *
-   * @param pageDB
-   */
   constructor(pageDB: PageDB) {
     this.pageDB = pageDB;
   }
@@ -16,18 +12,19 @@ class QueryHandler {
   /**
    * Generates wiki search results for a search query.
    *
-   * @param {(string | string[])} query a single string or an array of strings.
+   * @param {(string | Array<string>)} query a single string or an array of strings.
    * @returns Promise object representing an array of scores/search results.
    */
-  query = async (query: string | string[]): Promise<Array<Score>> => {
+  query = async (query: string | Array<string>): Promise<Array<Score>> => {
+    const q = Array.isArray(query) ? query : query.split(" ");
     const results = new Array<Score>();
     const content = new Array<number>();
     const location = new Array<number>();
 
     for (let i = 0; i < this.pageDB.size; i++) {
       const page = this.pageDB.pageAt(i);
-      content[i] = this.getFrequencyScore(page, query);
-      location[i] = this.getLocationScore(page, query);
+      content[i] = this.getFrequencyScore(page, q);
+      location[i] = this.getLocationScore(page, q);
     }
 
     this.normalize(content, false);
@@ -37,7 +34,12 @@ class QueryHandler {
       const page = this.pageDB.pageAt(i);
 
       if (content[i] > 0) {
-        results.push(new Score(page.url, content[i], location[i]));
+        results.push({
+          url: page.url,
+          score: content[i] + location[i] * 0.8,
+          content: content[i],
+          location: location[i] * 0.8,
+        });
       }
     }
 
@@ -45,20 +47,16 @@ class QueryHandler {
   };
 
   /**
-   * Calculates a score representing how often a word or words are showing up on a wiki page.
+   * Calculates a score representing how often a set of words are showing up on a wiki page.
    *
    * @private
    * @param {Page} page The page to check for a frequency score.
-   * @param {(string[] | string)} query The query containging the word or words.
+   * @param {Array<string>} query The set of words in the search string.
    */
-  private getFrequencyScore = (
-    page: Page,
-    query: string[] | string
-  ): number => {
-    const qws = Array.isArray(query) ? query : query.split(" ");
+  private getFrequencyScore = (page: Page, query: Array<string>): number => {
     let score = 0;
 
-    for (const q of qws) {
+    for (const q of query) {
       const id = this.pageDB.getIdForWord(q);
 
       for (const word of page.words) {
@@ -70,27 +68,25 @@ class QueryHandler {
   };
 
   /**
-   * NOT IN USE!
-   * @param page
-   * @param query
-   * @returns
+   * Calculates the distance between word pairs in the search query.
+   * Only used on multiple words in a search query.
+   *
+   * @private
+   * @param {Page} page The page to calculate word distance on.
+   * @param {Array<string>} query The set of words in the search string.
    */
-  private wordDistance = (page: Page, query: string | string[]): number => {
-    // Split search query to get each word
-    const qws = Array.isArray(query) ? query : query.split(" ");
+  private wordDistance = (page: Page, query: Array<string>): number => {
     let score = 0;
 
-    // Iterate over each pair if words in the search query
-    for (let i = 0; i < qws.length - 1; i++) {
-      //Use the document location function to get the
-      //location of the words
-      const loc1 = this.getLocationScore(page, qws[i]);
-      const loc2 = this.getLocationScore(page, qws[i + 1]);
+    for (let i = 0; i < query.length - 1; i++) {
+      const q1 = new Array<string>(query[i]);
+      const q2 = new Array<string>(query[i + 1]);
 
-      //Increase the score by the distance between the two words,
-      //or a high value if any word is not found in the page
+      const loc1 = this.getLocationScore(page, q1);
+      const loc2 = this.getLocationScore(page, q2);
+
       score =
-        loc1 == 100000 || loc2 == 100000
+        loc1 === 100000 || loc2 === 100000
           ? (score += 100000)
           : (score += Math.abs(loc1 - loc2));
     }
@@ -98,62 +94,53 @@ class QueryHandler {
     return score;
   };
 
-  private getLocationScore = (page: Page, query: string[] | string): number => {
-    // Split search query to get each word
-    const qws = Array.isArray(query) ? query : query.split(" ");
+  /**
+   * Calculates how relevant a search query of words is to a page.
+   *
+   * @private
+   * @param {Page} page The page to check for relevancy.
+   * @param {Array<string>} query The set of words in the search string.
+   */
+  private getLocationScore = (page: Page, query: Array<string>): number => {
     let score = 0;
 
-    // Iterate over each word in the search query
-    for (const q of qws) {
+    for (const q of query) {
       let found = false;
-
       const id = this.pageDB.getIdForWord(q);
 
-      // Iterate over all words in the page
-      for (let i = 0; i < page.words.length; i++) {
-        // Score is the index of the first occurence of the word + 1
-        // (to avoid zero scores)
-        if (page.words[i] === id) {
+      for (let i = 0; i < page.wordAmount; i++) {
+        if (page.wordAt(i) === id) {
           score += i + 1;
-
-          // Stop once the word has been found
           found = true;
           break;
         }
       }
 
-      // If the word is not found on the page, increase
-      // the score by a high value
       if (!found) score += 100000;
     }
 
-    // Return the score
     return score;
   };
 
-  private normalize = (contentOrLocation: number[], smallIsBetter: boolean) => {
+  /**
+   *  Converts scores to a score between 0 and 1.
+   *
+   * @private
+   * @param {Array<number>} scores a collection of scores.
+   * @param {boolean} smallIsBetter true if small values are good, false otherwise.
+   */
+  private normalize = (scores: Array<number>, smallIsBetter: boolean) => {
     if (smallIsBetter) {
-      // Smaller values shall be inverted to higher values
-      // and scaled between 0 and 1
-      // Find min value in the array
-      const min = Math.min(...contentOrLocation);
+      const min = Math.min(...scores);
 
-      // Divide the min value by the score
-      // (and avoid division by zero)
-      for (let i = 0; i < contentOrLocation.length; i++) {
-        contentOrLocation[i] = min / Math.max(contentOrLocation[i], 0.00001);
+      for (let i = 0; i < scores.length; i++) {
+        scores[i] = min / Math.max(scores[i], 0.00001);
       }
     } else {
-      // Higher values shall be scaled between 0 and 1
-      // Find max value in the array
-      let max = Math.max(...contentOrLocation);
+      const max = Math.max(...scores, 0.00001);
 
-      // To avoid division by zero
-      max = Math.max(max, 0.00001);
-
-      // When we have a max value, divide all scores by it
-      for (let i = 0; i < contentOrLocation.length; i++) {
-        contentOrLocation[i] = contentOrLocation[i] / max;
+      for (let i = 0; i < scores.length; i++) {
+        scores[i] = scores[i] / max;
       }
     }
   };
