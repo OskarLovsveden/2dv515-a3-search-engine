@@ -1,67 +1,71 @@
 import Page from "models/Page";
 import PageDB from "models/PageDB";
 import Score from "models/Score";
-import Scores from "models/Scores";
 
 class QueryHandler {
   private pageDB: PageDB;
 
+  /**
+   *
+   * @param pageDB
+   */
   constructor(pageDB: PageDB) {
     this.pageDB = pageDB;
   }
 
+  /**
+   * Generates wiki search results for a search query.
+   *
+   * @param {(string | string[])} query a single string or an array of strings.
+   * @returns Promise object representing an array of scores/search results.
+   */
   query = async (query: string | string[]): Promise<Array<Score>> => {
     const results = new Array<Score>();
-    const scores = new Scores();
+    const content = new Array<number>();
+    const location = new Array<number>();
 
-    // Calculate score for each page in the pages database
-    for (let i = 0; i < this.pageDB.pages.length; i++) {
-      const page = this.pageDB.pages[i];
-      scores.content[i] = this.getFrequencyScore(page, query);
-      scores.location[i] = this.getLocationScore(page, query);
+    for (let i = 0; i < this.pageDB.size; i++) {
+      const page = this.pageDB.pageAt(i);
+      content[i] = this.getFrequencyScore(page, query);
+      location[i] = this.getLocationScore(page, query);
     }
 
-    // Normalize scores
-    this.normalize(scores.content, false);
-    this.normalize(scores.location, true);
+    this.normalize(content, false);
+    this.normalize(location, true);
 
-    // Generate result list
-    for (let i = 0; i < this.pageDB.pages.length; i++) {
-      const page = this.pageDB.pages[i];
+    for (let i = 0; i < this.pageDB.size; i++) {
+      const page = this.pageDB.pageAt(i);
 
-      // Only include results where the word appears at least once
-      if (scores.content[i] > 0) {
-        results.push(
-          new Score(page.url, scores.content[i], scores.location[i])
-        );
+      if (content[i] > 0) {
+        results.push(new Score(page.url, content[i], location[i]));
       }
     }
 
-    // Sort result list with highest score first and return it
     return results.sort((a: Score, b: Score): number => b.score - a.score);
   };
 
+  /**
+   * Calculates a score representing how often a word or words are showing up on a wiki page.
+   *
+   * @private
+   * @param {Page} page The page to check for a frequency score.
+   * @param {(string[] | string)} query The query containging the word or words.
+   */
   private getFrequencyScore = (
     page: Page,
     query: string[] | string
   ): number => {
-    // Split search query to get each word
     const qws = Array.isArray(query) ? query : query.split(" ");
     let score = 0;
 
-    // Iterate over each word in the search query
     for (const q of qws) {
       const id = this.pageDB.getIdForWord(q);
 
-      // Iterate over all words in the page
       for (const word of page.words) {
-        // Increase score by one if the page word matches
-        // the query word
         if (word === id) score++;
       }
     }
 
-    // Return the score
     return score;
   };
 

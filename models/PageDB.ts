@@ -14,8 +14,8 @@ class PageDB {
     this._pages = [];
   }
 
-  get pages(): Page[] {
-    return this._pages;
+  get size(): number {
+    return this._pages.length;
   }
 
   getIdForWord(word: string): number {
@@ -30,6 +30,10 @@ class PageDB {
 
   addPage(page: Page) {
     this._pages.push(page);
+  }
+
+  pageAt(index: number) {
+    return this._pages[index];
   }
 
   //   toJSON(): PageDBJson {
