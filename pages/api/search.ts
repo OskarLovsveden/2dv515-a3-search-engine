@@ -1,4 +1,4 @@
-import Score from "models/Score";
+import { Score } from "types/Score";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getDBData } from "utils/pageDBCache";
 import QueryHandler from "utils/queryHandler";
