@@ -3,4 +3,5 @@ export type Score = {
   score: number;
   content: number;
   location: number;
+  pageRank: number;
 };
