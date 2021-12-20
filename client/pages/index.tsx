@@ -12,6 +12,7 @@ const Home: NextPage = () => {
   const [queryTime, setQueryTime] = useState<number>(0);
   const [queryRes, setQueryRes] = useState<Array<Score>>(new Array<Score>());
   const [pagination, setPagination] = useState<number>(5);
+  const [hasSearched, setHasSearched] = useState<boolean>(false);
 
   const onFirstPage = pagination === 5;
   const onLastPage = queryRes.length - pagination <= 0;
@@ -25,6 +26,7 @@ const Home: NextPage = () => {
     setQueryRes(data);
     setQueryTime(time);
     setPagination(5);
+    setHasSearched(true);
   };
 
   const pageBack = () => setPagination(pagination - 5);
@@ -40,7 +42,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <Searchbar resultHandler={resultHandler} />
-        {queryRes.length !== 0 ? (
+        {queryRes.length ? (
           <div>
             <QueryResTable
               queryRes={queryRes}
@@ -57,9 +59,11 @@ const Home: NextPage = () => {
             <div>{numOfResultsAndTime}</div>
           </div>
         ) : (
-          <div>
-            <h3>{"Sorry, no results to be found! :("}</h3>
-          </div>
+          hasSearched && (
+            <div>
+              <h3>{"Sorry, no results to be found! :("}</h3>
+            </div>
+          )
         )}
       </main>
     </div>
