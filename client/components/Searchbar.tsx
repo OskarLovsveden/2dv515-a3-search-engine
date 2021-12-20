@@ -27,7 +27,7 @@ const Searchbar = ({ resultHandler }: SearchbarProps) => {
   return (
     <form onSubmit={handleSubmit}>
       <label htmlFor="query">Search query: </label>
-      <input id="query" name="query" type="text" required />
+      <input id="query" name="query" type="text" autoComplete="off" required />
       <button className="mx-1" type="submit">
         Search
       </button>
