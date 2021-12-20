@@ -1,5 +1,5 @@
-import Page from "models/Page";
-import PageDB from "models/PageDB";
+import Page from "server/models/Page";
+import PageDB from "server/models/PageDB";
 import { Score } from "types/Score";
 
 class QueryHandler {
@@ -12,10 +12,10 @@ class QueryHandler {
   /**
    * Generates wiki search results for a search query.
    *
-   * @param {(string | Array<string>)} query a single string or an array of strings.
+   * @param {string} query a search string.
    * @returns Promise object representing an array of scores/search results.
    */
-  query = async (query: string | Array<string>): Promise<Array<Score>> => {
+  query = async (query: string): Promise<Array<Score>> => {
     const q = Array.isArray(query) ? query : query.split(" ");
     const results = new Array<Score>();
     const content = new Array<number>();
@@ -27,6 +27,7 @@ class QueryHandler {
       location[i] = this.getLocationScore(page, q);
     }
 
+    this.calculatePageRank();
     this.normalize(content, false);
     this.normalize(location, true);
 
@@ -36,9 +37,10 @@ class QueryHandler {
       if (content[i] > 0) {
         results.push({
           url: page.url,
-          score: content[i] + location[i] * 0.8,
+          score: content[i] + 0.8 * location[i] + 0.5 * page.pageRank,
           content: content[i],
           location: location[i] * 0.8,
+          pageRank: page.pageRank * 0.5,
         });
       }
     }
@@ -143,6 +145,53 @@ class QueryHandler {
         scores[i] = scores[i] / max;
       }
     }
+  };
+
+  /**
+   * Calculates and sets the PageRank of all the pages, iterates 20 times.
+   *
+   * @private
+   */
+  private calculatePageRank = () => {
+    let ranks = Array<number>();
+
+    for (let i = 0; i < 20; i++) {
+      ranks = new Array<number>();
+
+      for (const page of this.pageDB.pages) {
+        ranks.push(this.iteratePR(page));
+      }
+
+      for (let j = 0; j < this.pageDB.size; j++) {
+        this.pageDB.pageAt(j).pageRank = ranks[j];
+      }
+    }
+
+    this.normalize(ranks, false);
+
+    for (let i = 0; i < this.pageDB.size; i++) {
+      this.pageDB.pageAt(i).pageRank = ranks[i];
+    }
+  };
+
+  /**
+   * Calculate page rank value for a page.
+   *
+   * @private
+   * @param {Page} p The page of which to calculate the PageRank.
+   * @returns {number} The PageRank result.
+   */
+  private iteratePR = (p: Page): number => {
+    let pr = 0;
+
+    for (const page of this.pageDB.pages) {
+      if (page.hasLinkTo(p)) {
+        pr += page.pageRank / page.getNoLinks();
+      }
+    }
+
+    pr = 0.85 * pr + 0.15;
+    return pr;
   };
 }
 

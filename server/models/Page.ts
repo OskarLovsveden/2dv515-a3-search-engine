@@ -2,11 +2,13 @@ class Page {
   private _url: string;
   private _words: Array<number>;
   private _links: Set<string>;
+  pageRank: number;
 
-  constructor(url: string) {
+  constructor(url: string, links: Set<string>) {
     this._url = url;
     this._words = new Array<number>();
-    this._links = new Set<string>();
+    this._links = links;
+    this.pageRank = 1.0;
   }
 
   get url(): string {
@@ -27,6 +29,14 @@ class Page {
 
   wordAt(index: number) {
     return this._words[index];
+  }
+
+  getNoLinks() {
+    return this._links.size;
+  }
+
+  hasLinkTo(p: Page) {
+    return this._links.has(p.url);
   }
 }
 

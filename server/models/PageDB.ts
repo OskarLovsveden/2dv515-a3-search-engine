@@ -9,6 +9,10 @@ class PageDB {
     this._pages = new Array<Page>();
   }
 
+  get pages(): Array<Page> {
+    return this._pages;
+  }
+
   get size(): number {
     return this._pages.length;
   }
