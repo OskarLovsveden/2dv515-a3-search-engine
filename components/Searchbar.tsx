@@ -15,7 +15,7 @@ const Searchbar = ({ resultHandler }: SearchbarProps) => {
     };
 
     const res = await fetch(
-      "http://localhost:3000/api/search?q=" +
+      "http://localhost:5050/search?q=" +
         target.query.value.replaceAll(/\s+/gm, "+")
     );
 
