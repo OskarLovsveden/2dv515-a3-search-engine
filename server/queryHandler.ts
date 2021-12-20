@@ -1,13 +1,6 @@
 import Page from "models/Page";
 import PageDB from "models/PageDB";
-
-type Score = {
-  url: string;
-  score: number;
-  content: number;
-  location: number;
-  pageRank: number;
-};
+import { Score } from "types/Score";
 
 export class QueryHandler {
   private pageDB: PageDB;

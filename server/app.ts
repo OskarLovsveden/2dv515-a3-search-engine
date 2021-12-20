@@ -1,7 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+
 import { QueryHandler } from "./QueryHandler";
 import { getPageDB } from "./pageDBGenerator";
-import cors from "cors";
 
 const pageDB = getPageDB();
 const qh = new QueryHandler(pageDB);
