@@ -40,7 +40,7 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <Searchbar resultHandler={resultHandler} />
-        {queryRes.length !== 0 && (
+        {queryRes.length !== 0 ? (
           <div>
             <QueryResTable
               queryRes={queryRes}
@@ -55,6 +55,10 @@ const Home: NextPage = () => {
               {">"}
             </button>
             <div>{numOfResultsAndTime}</div>
+          </div>
+        ) : (
+          <div>
+            <h3>{"Sorry, no results to be found! :("}</h3>
           </div>
         )}
       </main>
