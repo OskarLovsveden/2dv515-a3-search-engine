@@ -1,50 +1,45 @@
-// Inspiration @ https://flaviocopes.com/nextjs-cache-data-globally/
-
-import { createReadStream } from "fs";
-import { readdir } from "fs/promises";
-import Page from "server/models/Page";
-import PageDB from "server/models/PageDB";
-import { createInterface } from "readline";
+import { readdirSync, readFileSync } from "fs";
+import path from "path";
+import Page from "./models/Page";
+import PageDB from "./models/PageDB";
 
 /**
  * Creates and returns an instance of PageDB.
  *
  * @returns {Promise<PageDB>} the page DB containing all pages of our dataset.
  */
-export const getPageDB = async (): Promise<PageDB> => {
+export const getPageDB = (): PageDB => {
   const pageDB = new PageDB();
-  const wordsDir = "data/wikipedia/Words";
-  const linksDir = "data/wikipedia/Links";
+
+  const wordsDir = path.join(__dirname, "wikipedia", "Words");
+  const linksDir = path.join(__dirname, "wikipedia", "Links");
 
   try {
-    const subDirs = await readdir(wordsDir);
-    for (const sd of subDirs) {
-      const sd1Path = wordsDir + "/" + sd;
-      const sd2Path = linksDir + "/" + sd;
-      const sd1 = await readdir(sd1Path);
+    const subDirs = readdirSync(wordsDir, "utf-8");
+    for (const subdir of subDirs) {
+      const subdirPathOne = path.join(wordsDir, subdir);
+      const subdirPathTwo = path.join(linksDir, subdir);
+
+      const sd1 = readdirSync(subdirPathOne, "utf-8");
+      const sd2 = readdirSync(subdirPathTwo, "utf-8");
 
       for (const file of sd1) {
-        const r1 = createInterface({
-          input: createReadStream(sd2Path + "/" + file),
-          crlfDelay: Infinity,
-        });
+        const r1 = readFileSync(path.join(subdirPathTwo, file), "utf-8");
 
         const links = new Set<string>();
+        const lines1 = r1.trim().split(/\r?\n/);
 
-        for await (const line of r1) {
+        for (const line of lines1) {
           links.add(line.replace("/wiki/", "").trim());
         }
 
         const page = new Page(file, links);
 
-        const r2 = createInterface({
-          input: createReadStream(sd1Path + "/" + file),
-          crlfDelay: Infinity,
-        });
-
-        for await (const line of r2) {
-          const lineAsArray = line.split(" ");
-          for (const word of lineAsArray) {
+        const r2 = readFileSync(path.join(subdirPathOne, file), "utf-8");
+        const lines2 = r2.trim().split(/\r?\n/);
+        for (const line of lines2) {
+          const words = line.trim().split(" ");
+          for (const word of words) {
             page.addWordId(pageDB.getIdForWord(word));
           }
         }
