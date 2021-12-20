@@ -1,8 +1,15 @@
-import Page from "server/models/Page";
-import PageDB from "server/models/PageDB";
-import { Score } from "types/Score";
+import Page from "models/Page";
+import PageDB from "models/PageDB";
 
-class QueryHandler {
+type Score = {
+  url: string;
+  score: number;
+  content: number;
+  location: number;
+  pageRank: number;
+};
+
+export class QueryHandler {
   private pageDB: PageDB;
 
   constructor(pageDB: PageDB) {
@@ -12,19 +19,18 @@ class QueryHandler {
   /**
    * Generates wiki search results for a search query.
    *
-   * @param {string} query a search string.
+   * @param {Array<string>} query a search string array.
    * @returns Promise object representing an array of scores/search results.
    */
-  query = async (query: string): Promise<Array<Score>> => {
-    const q = Array.isArray(query) ? query : query.split(" ");
+  query = async (query: Array<string>): Promise<Array<Score>> => {
     const results = new Array<Score>();
     const content = new Array<number>();
     const location = new Array<number>();
 
     for (let i = 0; i < this.pageDB.size; i++) {
       const page = this.pageDB.pageAt(i);
-      content[i] = this.getFrequencyScore(page, q);
-      location[i] = this.getLocationScore(page, q);
+      content[i] = this.getFrequencyScore(page, query);
+      location[i] = this.getLocationScore(page, query);
     }
 
     this.calculatePageRank();
@@ -194,5 +200,3 @@ class QueryHandler {
     return pr;
   };
 }
-
-export default QueryHandler;
