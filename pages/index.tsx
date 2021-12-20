@@ -14,9 +14,9 @@ const Home: NextPage = () => {
   const [pagination, setPagination] = useState<number>(5);
 
   const onFirstPage = pagination === 5;
-  const onLastPage = pagination + 5 > queryRes.length;
+  const onLastPage = queryRes.length - pagination <= 0;
   const currentPage = pagination / 5;
-  const lastPage = Math.round(queryRes.length / 5);
+  const lastPage = Math.ceil(queryRes.length / 5);
   const pageNumbers = "page " + currentPage + " of " + lastPage;
   const numOfResultsAndTime =
     "Found " + queryRes.length + " results in " + queryTime.toFixed(3) + " sec";
@@ -42,20 +42,18 @@ const Home: NextPage = () => {
         <Searchbar resultHandler={resultHandler} />
         {queryRes.length !== 0 && (
           <div>
-            <div>
-              <QueryResTable
-                queryRes={queryRes}
-                startAt={pagination - 5}
-                endAt={pagination}
-              />
-              <button disabled={onFirstPage} onClick={pageBack}>
-                {"<"}
-              </button>
-              <span className="mx-1">{pageNumbers}</span>
-              <button disabled={onLastPage} onClick={pageForward}>
-                {">"}
-              </button>
-            </div>
+            <QueryResTable
+              queryRes={queryRes}
+              startAt={pagination - 5}
+              endAt={pagination}
+            />
+            <button disabled={onFirstPage} onClick={pageBack}>
+              {"<"}
+            </button>
+            <span className="mx-1">{pageNumbers}</span>
+            <button disabled={onLastPage} onClick={pageForward}>
+              {">"}
+            </button>
             <div>{numOfResultsAndTime}</div>
           </div>
         )}
