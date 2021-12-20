@@ -11,30 +11,32 @@ type QueryResTableProps = {
 const QueryResTable = ({ queryRes, startAt, endAt }: QueryResTableProps) => {
   return (
     <table className={styles.table}>
-      <tr>
-        <th>Link</th>
-        <th>Score</th>
-        <th>Content</th>
-        <th>Location</th>
-        <th>PageRank</th>
-      </tr>
-      {queryRes.slice(startAt, endAt).map((q: Score, i: number) => (
-        <tr key={i}>
-          <td>
-            <a
-              target="_blank"
-              rel="noreferrer"
-              href={`https://en.wikipedia.org/wiki/${q.url}`}
-            >
-              {q.url}
-            </a>
-          </td>
-          <td>{truncate(q.score, 2)}</td>
-          <td>{truncate(q.content, 2)}</td>
-          <td>{truncate(q.location, 2)}</td>
-          <td>0</td>
+      <tbody>
+        <tr>
+          <th>Link</th>
+          <th>Score</th>
+          <th>Content</th>
+          <th>Location</th>
+          <th>PageRank</th>
         </tr>
-      ))}
+        {queryRes.slice(startAt, endAt).map((q: Score, i: number) => (
+          <tr key={i}>
+            <td>
+              <a
+                target="_blank"
+                rel="noreferrer"
+                href={`https://en.wikipedia.org/wiki/${q.url}`}
+              >
+                {q.url}
+              </a>
+            </td>
+            <td>{truncate(q.score, 2)}</td>
+            <td>{truncate(q.content, 2)}</td>
+            <td>{truncate(q.location, 2)}</td>
+            <td>{truncate(q.pageRank, 2)}</td>
+          </tr>
+        ))}
+      </tbody>
     </table>
   );
 };
